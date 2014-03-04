@@ -1,0 +1,9 @@
+[Core]
+Name = ChatRoomGreeting
+Module = chatRoomGreeting
+
+[Documentation]
+Description = If enabled, will greet every new participant in multi user chat
+
+[Python]
+Version = 3
