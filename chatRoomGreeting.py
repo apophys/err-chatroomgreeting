@@ -21,19 +21,20 @@ class ChatRoomGreeting(BotPlugin):
 
     def activate(self):
         super(ChatRoomGreeting, self).activate()
-        if bot.mode == 'xmpp':
-            for room in self.get('rooms_enabled', set()):
-                bot.conn.add_event_handler('muc::%s::got_online' % room,
-                                           self.callback_muc_presence)
+       #  if bot.mode == 'xmpp':
+       #      for room in self.get('rooms_enabled', set()):
+       #          bot.conn.add_event_handler('muc::%s::got_online' % room,
+       #                                     self.callback_muc_presence)
 
     def deactivate(self):
-        for room in CHATROOM_PRESENCE:
-            bot.conn.del_event_handler('muc::%s::got_online' % room,
-                                       self.callback_muc_presence)
+        # for room in CHATROOM_PRESENCE:
+        #     bot.conn.del_event_handler('muc::%s::got_online' % room,
+        #                                self.callback_muc_presence)
         self.active = False
         super(ChatRoomGreeting, self).deactivate()
 
-    def callback_muc_presence(self, pres):
+    # def callback_muc_presence(self, pres):
+    def callback_user_joined_chat(self, conn, pres):
         if bot.mode == 'xmpp':
             # check for the status of the room roster
             room = pres['from'].node
@@ -58,6 +59,8 @@ class ChatRoomGreeting(BotPlugin):
 
     @botcmd
     def greeting_stop(self, mess, _):
+        """Stops sending messages to the user."""
+
         if bot.mode == 'xmpp':
             nick = mess.getFrom().resource
             disable_nick = str(mess.getFrom())
@@ -72,6 +75,8 @@ class ChatRoomGreeting(BotPlugin):
 
     @botcmd
     def greeting_start(self, mess, _):
+        """Enables sending of the messages to the user."""
+        
         if bot.mode == 'xmpp':
             nick = mess.getFrom().resource
             enable_nick = str(mess.getFrom())
@@ -85,6 +90,11 @@ class ChatRoomGreeting(BotPlugin):
 
     @botcmd(admin_only=True, split_args_with=' ')
     def greeting_enable(self, mess, args):
+        # FIXME
+        message = "This command is not usable at the moment."
+        return message
+
+        ###################
         # TODO: remove this
         if len(args) > 1:
             message = ("You can't allow multiple rooms in one call at the moment."
@@ -105,6 +115,11 @@ class ChatRoomGreeting(BotPlugin):
 
     @botcmd(admin_only=True, split_args_with=' ')
     def greeting_disable(self, mess, args):
+        # FIXME
+        message = "This command is not usable at the moment."
+        return message
+        
+        ##################
         message = ""
         if len(args) > 1:
             message = "You can't allow multiple rooms in one call at the moment." \
@@ -128,18 +143,15 @@ class ChatRoomGreeting(BotPlugin):
 
     @botcmd(admin_only=True)
     def greeting_reset(self, mess, args):
-        self['rooms_enabled'] = set()
         self['disabled_nicks'] = set()
 
-        return "All enabled rooms and nicks excluded from greeting were purged."
+        return "All nicks excluded from greeting were purged."
 
     @botcmd(admin_only=True)
     def greeting_list(self, mess, args):
-        message = "\nList of enabled rooms:\n{}\nList of users excluded from greeting:\n{}"
+        message = "List of users excluded from greeting:\n{}"
 
-        rooms = ('\n'.join(self.get('rooms_enabled')) or
-                 "There are no rooms enabled at the moment.")
-        nicks = ('\n'.join(self.get('disabled_nicks')) or
+        nicks = ('\n'.join(self.get('disabled_nicks', '')) or
                  "There are no usernames excluded from the greeting.")
 
-        return message.format(rooms, nicks)
+        return message.format(nicks)
